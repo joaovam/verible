@@ -19,6 +19,7 @@
 // verilog_syntax --verilog_trace_parser files...
 
 #include <algorithm>
+#include <chrono>
 #include <functional>
 #include <iomanip>
 #include <iostream>
@@ -113,6 +114,8 @@ ABSL_FLAG(bool, show_diagnostic_context, false,
           "prints an additional "
           "line on which the diagnostic was found,"
           "followed by a line with a position marker");
+
+ABSL_FLAG(bool, measure_time, false, "Measure execution time");
 
 using nlohmann::json;
 using verible::ConcreteSyntaxTree;
@@ -309,8 +312,16 @@ int main(int argc, char **argv) {
         .filter_branches = true,
     };
     json file_json;
+    auto start = std::chrono::system_clock::now();
     int file_status =
         AnalyzeOneFile(content, filename, preprocess_config, &file_json);
+    auto end = std::chrono::system_clock::now();
+    if (absl::GetFlag(FLAGS_measure_time)) {
+      auto duration =
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+      std::cout << duration.count() << " us\n";
+    }
+
     exit_status = std::max(exit_status, file_status);
     if (absl::GetFlag(FLAGS_export_json)) {
       json_out[std::string{filename.begin(), filename.end()}] =
