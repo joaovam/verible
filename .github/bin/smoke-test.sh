@@ -53,7 +53,7 @@ readonly TERM_RED=$'\033[1;31m'
 readonly TERM_BOLD=$'\033[1m'
 readonly TERM_RESET=$'\033[0m'
 
-readonly BINARY_BASE_DIR=bazel-bin/verilog/tools
+readonly BINARY_BASE_DIR=bazel-bin/verible/verilog/tools
 
 readonly ISSUE_PREFIX="https://github.com/chipsalliance/verible/issues"
 
@@ -81,6 +81,9 @@ readonly VERIBLE_TOOLS_TO_RUN="syntax/verible-verilog-syntax \
 #
 # There are some known issues which are all recorded in the associative
 # array below, mapping them to Verible issue tracker numbers.
+# TODO(hzeller): there should be a configuration file that contains two
+# columns: URL + hash, so that we can fetch a particular known version not
+# a moving target.
 readonly TEST_GIT_PROJECTS="https://github.com/lowRISC/ibex \
          https://github.com/lowRISC/opentitan \
          https://github.com/chipsalliance/sv-tests \
@@ -135,20 +138,21 @@ ExpectedFailCount[lint:ibex]=14
 ExpectedFailCount[project:ibex]=211
 ExpectedFailCount[preprocessor:ibex]=385
 
-ExpectedFailCount[syntax:opentitan]=36
-ExpectedFailCount[lint:opentitan]=36
-ExpectedFailCount[project:opentitan]=800
-ExpectedFailCount[preprocessor:opentitan]=2238
+ExpectedFailCount[syntax:opentitan]=65
+ExpectedFailCount[lint:opentitan]=65
+ExpectedFailCount[project:opentitan]=951
+ExpectedFailCount[formatter:opentitan]=1
+ExpectedFailCount[preprocessor:opentitan]=2560
 
 ExpectedFailCount[syntax:sv-tests]=77
 ExpectedFailCount[lint:sv-tests]=76
 ExpectedFailCount[project:sv-tests]=187
 ExpectedFailCount[preprocessor:sv-tests]=139
 
-ExpectedFailCount[syntax:caliptra-rtl]=25
+ExpectedFailCount[syntax:caliptra-rtl]=26
 ExpectedFailCount[lint:caliptra-rtl]=25
-ExpectedFailCount[project:caliptra-rtl]=335
-ExpectedFailCount[preprocessor:caliptra-rtl]=777
+ExpectedFailCount[project:caliptra-rtl]=371
+ExpectedFailCount[preprocessor:caliptra-rtl]=802
 
 ExpectedFailCount[syntax:Cores-VeeR-EH2]=2
 ExpectedFailCount[lint:Cores-VeeR-EH2]=2
@@ -157,8 +161,8 @@ ExpectedFailCount[preprocessor:Cores-VeeR-EH2]=43
 
 ExpectedFailCount[syntax:cva6]=7
 ExpectedFailCount[lint:cva6]=7
-ExpectedFailCount[project:cva6]=86
-ExpectedFailCount[preprocessor:cva6]=124
+ExpectedFailCount[project:cva6]=91
+ExpectedFailCount[preprocessor:cva6]=141
 
 ExpectedFailCount[syntax:uvm]=1
 ExpectedFailCount[lint:uvm]=1
@@ -178,10 +182,10 @@ ExpectedFailCount[lint:XilinxUnisimLibrary]=4
 ExpectedFailCount[project:XilinxUnisimLibrary]=22
 ExpectedFailCount[preprocessor:XilinxUnisimLibrary]=96
 
-ExpectedFailCount[syntax:black-parrot]=159
-ExpectedFailCount[lint:black-parrot]=159
-ExpectedFailCount[project:black-parrot]=174
-ExpectedFailCount[preprocessor:black-parrot]=175
+ExpectedFailCount[syntax:black-parrot]=154
+ExpectedFailCount[lint:black-parrot]=154
+ExpectedFailCount[project:black-parrot]=169
+ExpectedFailCount[preprocessor:black-parrot]=170
 
 ExpectedFailCount[syntax:ivtest]=166
 ExpectedFailCount[lint:ivtest]=166
@@ -193,13 +197,13 @@ ExpectedFailCount[lint:nontrivial-mips]=2
 ExpectedFailCount[project:nontrivial-mips]=81
 ExpectedFailCount[preprocessor:nontrivial-mips]=78
 
-ExpectedFailCount[project:axi]=76
-ExpectedFailCount[preprocessor:axi]=73
+ExpectedFailCount[project:axi]=78
+ExpectedFailCount[preprocessor:axi]=75
 
 ExpectedFailCount[syntax:rsd]=5
 ExpectedFailCount[lint:rsd]=5
-ExpectedFailCount[project:rsd]=51
-ExpectedFailCount[preprocessor:rsd]=48
+ExpectedFailCount[project:rsd]=52
+ExpectedFailCount[preprocessor:rsd]=49
 
 ExpectedFailCount[project:scr1]=45
 ExpectedFailCount[preprocessor:scr1]=46
@@ -207,15 +211,15 @@ ExpectedFailCount[preprocessor:scr1]=46
 ExpectedFailCount[project:serv]=1
 ExpectedFailCount[preprocessor:serv]=1
 
-ExpectedFailCount[syntax:basejump_stl]=469
-ExpectedFailCount[lint:basejump_stl]=469
-ExpectedFailCount[project:basejump_stl]=581
+ExpectedFailCount[syntax:basejump_stl]=481
+ExpectedFailCount[lint:basejump_stl]=481
+ExpectedFailCount[project:basejump_stl]=596
 ExpectedFailCount[formatter:basejump_stl]=1
-ExpectedFailCount[preprocessor:basejump_stl]=615
+ExpectedFailCount[preprocessor:basejump_stl]=632
 
-ExpectedFailCount[syntax:opl3_fpga]=2
-ExpectedFailCount[lint:opl3_fpga]=2
-ExpectedFailCount[project:opl3_fpga]=4
+ExpectedFailCount[syntax:opl3_fpga]=3
+ExpectedFailCount[lint:opl3_fpga]=3
+ExpectedFailCount[project:opl3_fpga]=5
 ExpectedFailCount[preprocessor:opl3_fpga]=4
 
 # Ideally, we expect all tools to process all files with a zero exit code.
