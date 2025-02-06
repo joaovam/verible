@@ -16,13 +16,38 @@
 set -u
 set -e
 
-readonly OUTPUT_BASE="$(bazel info output_base)"
+# Which bazel and bant to use can be chosen by environment variables
+BAZEL=${BAZEL:-bazel}
+BANT=${BANT:-needs-to-be-compiled-locally}
 
-readonly COMPDB_SCRIPT="${OUTPUT_BASE}/external/rules_compdb/generate.py"
-[ -r "${COMPDB_SCRIPT}" ] || bazel fetch ...
+if [ "${BANT}" = "needs-to-be-compiled-locally" ]; then
+  # Bant not given, compile from bzlmod dep. We need to do that before
+  # we run other bazel rules below as we change the cxxopt flags. Remember
+  # the full realpath of the resulting binary to be immune to symbolic-link
+  # switcharoo by bazel.
+  ${BAZEL} build -c opt --cxxopt=-std=c++20 @bant//bant:bant >/dev/null 2>&1
+  BANT=$(realpath bazel-bin/external/bant*/bant/bant)
+fi
 
-python3 "${COMPDB_SCRIPT}"
+BAZEL_OPTS="-c opt --noshow_progress"
+# Bazel-build all targets that generate files, so that they can be
+# seen in dependency analysis.
+${BAZEL} build ${BAZEL_OPTS} $(${BANT} list-targets | \
+  egrep "genrule|cc_proto_library|genlex|genyacc" | awk '{print $3}')
 
-# Remove a flags observed in the wild that clang-tidy doesn't understand.
-sed -i -e 's/-fno-canonical-system-headers//g; s/DEBUG_PREFIX_MAP_PWD=.//g' \
-       compile_commands.json
+# Some selected targets to trigger all dependency fetches from MODULE.bazel
+# verilog-y-final to create a header, kzip creator to trigger build of any.pb.h
+# and some test that triggers fetching nlohmann_json and gtest
+${BAZEL} build ${BAZEL_OPTS} //verible/verilog/parser:verilog-y-final \
+  //verible/verilog/tools/kythe:verible-verilog-kythe-kzip-writer \
+  //verible/common/lsp:json-rpc-dispatcher_test
+
+# bant does not distinguish the includes per file yet, so instead of
+# a compile_commands.json, we can just as well create a simpler
+# compile_flags.txt which is easier to digest for all kinds of tools anyway.
+${BANT} compile-flags 2>/dev/null > compile_flags.txt
+
+# Bant does not see the flex dependency inside the toolchain yet.
+for d in bazel-out/../../../external/*flex*/src/FlexLexer.h ; do
+  echo "-I$(dirname $d)" >> compile_flags.txt
+done
