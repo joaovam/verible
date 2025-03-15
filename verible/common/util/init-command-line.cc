@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "absl/base/log_severity.h"
@@ -28,7 +29,6 @@
 #include "absl/log/globals.h"
 #include "absl/log/initialize.h"
 #include "absl/strings/numbers.h"
-#include "absl/strings/string_view.h"
 #include "absl/time/time.h"
 #include "verible/common/util/generated-verible-build-version.h"
 
@@ -36,21 +36,27 @@ namespace verible {
 
 std::string GetRepositoryVersion() {
 #ifdef VERIBLE_GIT_DESCRIBE
-  return VERIBLE_GIT_DESCRIBE;
+  return VERIBLE_GIT_DESCRIBE;  // from --workspace_status_command
+#elif defined(VERIBLE_MODULE_VERSION)
+  return VERIBLE_MODULE_VERSION;  // from MODULE.bazel via module-version.bzl
 #else
   return "<unknown repository version>";
 #endif
 }
 
 // Long-form of build version, might contain multiple lines
+// Build a version string with as much as possible info.
 static std::string GetBuildVersion() {
   std::string result;
-  // Build a version string with as much as possible info.
-#ifdef VERIBLE_GIT_DESCRIBE
-  result.append(VERIBLE_GIT_DESCRIBE).append("\n");
-#endif
-#ifdef VERIBLE_GIT_DATE
-  result.append("Commit\t").append(VERIBLE_GIT_DATE).append("\n");
+  result.append("Version\t").append(GetRepositoryVersion()).append("\n");
+#ifdef VERIBLE_COMMIT_TIMESTAMP
+  result.append("Commit-Timestamp\t")
+      .append(absl::FormatTime("%Y-%m-%dT%H:%M:%SZ",
+                               absl::FromTimeT(VERIBLE_COMMIT_TIMESTAMP),
+                               absl::UTCTimeZone()))
+      .append("\n");
+#elif defined(VERIBLE_GIT_DATE)  // Legacy
+  result.append("Commit-Date\t").append(VERIBLE_GIT_DATE).append("\n");
 #endif
 #ifdef VERIBLE_BUILD_TIMESTAMP
   result.append("Built\t")
@@ -83,8 +89,8 @@ void SetLoggingLevelsFromEnvironment() {
 }
 
 // We might want to have argc edited in the future, hence non-const param.
-std::vector<absl::string_view> InitCommandLine(
-    absl::string_view usage,
+std::vector<std::string_view> InitCommandLine(
+    std::string_view usage,
     int *argc,  // NOLINT(readability-non-const-parameter)
     char ***argv) {
   absl::InitializeSymbolizer(*argv[0]);

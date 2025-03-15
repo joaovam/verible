@@ -21,6 +21,7 @@
 #include <iterator>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -29,7 +30,6 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
-#include "absl/strings/string_view.h"
 #include "verible/common/formatting/format-token.h"
 #include "verible/common/formatting/token-partition-tree.h"
 #include "verible/common/formatting/tree-unwrapper.h"
@@ -174,7 +174,7 @@ TokenScannerStateStrings() {
 }
 
 // Conventional stream printer (declared in header providing enum).
-std::ostream &operator<<(std::ostream &stream, TokenScannerState p) {
+static std::ostream &operator<<(std::ostream &stream, TokenScannerState p) {
   return TokenScannerStateStrings().Unparse(p, stream);
 }
 
@@ -638,12 +638,12 @@ static const verible::EnumNameMap<ContextHint> &ContextHintStrings() {
   return kContextHintStringMap;
 }
 
-std::ostream &operator<<(std::ostream &stream, ContextHint p) {
+static std::ostream &operator<<(std::ostream &stream, ContextHint p) {
   return ContextHintStrings().Unparse(p, stream);
 }
 
-std::ostream &operator<<(std::ostream &stream,
-                         const std::vector<ContextHint> &f) {
+static std::ostream &operator<<(std::ostream &stream,
+                                const std::vector<ContextHint> &f) {
   return stream << verible::SequenceFormatter(f);
 }
 
@@ -1573,7 +1573,7 @@ static void AttachSeparatorToPreviousOrNextPartition(
     if (!previous_partition->Value().TokensRange().empty()) {
       const auto &previous_token =
           previous_partition->Value().TokensRange().back();
-      absl::string_view original_text_between = verible::make_string_view_range(
+      std::string_view original_text_between = verible::make_string_view_range(
           previous_token.Text().end(), separator->Text().begin());
       if (!absl::StrContains(original_text_between, '\n')) {
         VLOG(5) << "  merge into previous partition.";
@@ -1589,7 +1589,7 @@ static void AttachSeparatorToPreviousOrNextPartition(
   if (next_partition != nullptr) {
     if (!next_partition->Value().TokensRange().empty()) {
       const auto &next_token = next_partition->Value().TokensRange().front();
-      absl::string_view original_text_between = verible::make_string_view_range(
+      std::string_view original_text_between = verible::make_string_view_range(
           separator->Text().end(), next_token.Text().begin());
       if (!absl::StrContains(original_text_between, '\n')) {
         VLOG(5) << "  merge into next partition.";
@@ -1623,7 +1623,8 @@ static void AttachSeparatorToPreviousOrNextPartition(
   partition->Value().SetOrigin(nullptr);
 }
 
-void AttachSeparatorsToListElementPartitions(TokenPartitionTree *partition) {
+static void AttachSeparatorsToListElementPartitions(
+    TokenPartitionTree *partition) {
   CHECK_NOTNULL(partition);
   // Skip the first partition, it can't contain just a separator.
   for (int i = 1; i < static_cast<int>(partition->Children().size()); ++i) {
@@ -3191,7 +3192,7 @@ void TreeUnwrapper::Visit(const verible::SyntaxTreeLeaf &leaf) {
   UpdateInterLeafScanner(tag);
 
   // Sanity check that NextUnfilteredToken() is aligned to the current leaf.
-  CHECK_EQ(NextUnfilteredToken()->text().begin(), leaf.get().text().begin());
+  CHECK(NextUnfilteredToken()->text().begin() == leaf.get().text().begin());
 
   // Start a new partition in the following cases.
   // In most other cases, do nothing.

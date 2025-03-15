@@ -19,9 +19,9 @@
 #include <initializer_list>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "verible/common/formatting/format-token.h"
 #include "verible/common/formatting/token-partition-tree.h"
 #include "verible/common/formatting/unwrapped-line.h"
@@ -250,7 +250,7 @@ enum class AlignmentPolicy {
 
 std::ostream &operator<<(std::ostream &, AlignmentPolicy);
 
-bool AbslParseFlag(absl::string_view text, AlignmentPolicy *policy,
+bool AbslParseFlag(std::string_view text, AlignmentPolicy *policy,
                    std::string *error);
 
 std::string AbslUnparseFlag(const AlignmentPolicy &policy);
@@ -396,8 +396,8 @@ ColumnPositionTree ScanPartitionForAlignmentCells_WithNonTreeTokens(
 
     // Collect tokens excluded from SyntaxTree (delimiters and comments)
     CHECK(!ftokens.empty());
-    CHECK_LE(ftokens.front().Text().begin(), first_tree_token.text().begin());
-    CHECK_GE(ftokens.back().Text().end(), last_tree_token.text().end());
+    CHECK(ftokens.front().Text().begin() <= first_tree_token.text().begin());
+    CHECK(ftokens.back().Text().end() >= last_tree_token.text().end());
 
     FormatTokenRange::const_iterator ftoken_it = ftokens.begin();
     // Find leading non-tree tokens range end
@@ -538,7 +538,7 @@ void FormatUsingOriginalSpacing(TokenPartitionRange partition_range);
 //    ccc[33] dd [444]
 //
 void TabularAlignTokens(
-    int column_limit, absl::string_view full_text,
+    int column_limit, std::string_view full_text,
     const ByteOffsetSet &disabled_byte_ranges,
     const ExtractAlignmentGroupsFunction &extract_alignment_groups,
     TokenPartitionTree *partition_ptr);

@@ -16,10 +16,10 @@
 
 #include <algorithm>
 #include <iterator>
+#include <string_view>
 #include <utility>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "verible/common/formatting/format-token.h"
 #include "verible/common/formatting/tree-annotator.h"
 #include "verible/common/strings/range.h"
@@ -240,9 +240,7 @@ static WithReason<int> SpacesRequiredBetween(
       }
 
       int spaces = right.OriginalLeadingSpaces().length();
-      if (spaces > 1) {
-        spaces = 1;
-      }
+      spaces = std::min(spaces, 1);
       return {spaces, "Limit <= 1 space before binary operator inside []."};
     }
     if (left.format_token_enum == FormatTokenType::binary_operator &&
@@ -764,7 +762,7 @@ static WithReason<SpacingOptions> BreakDecisionBetween(
   if (right.TokenEnum() == PP_define_body) {
     // TODO(b/141517267): reflow macro definition text with flexible
     // line-continuations.
-    const absl::string_view text = right.Text();
+    const std::string_view text = right.Text();
     if (std::count(text.begin(), text.end(), '\n') >= 2) {
       return {SpacingOptions::kPreserve,
               "Preserve spacing before a multi-line macro definition body."};
@@ -789,7 +787,7 @@ static WithReason<SpacingOptions> BreakDecisionBetween(
         left.token->text().end(), right.token->text().begin());
 
     auto pos = preceding_whitespace.find_first_of('\n', 0);
-    if (pos == absl::string_view::npos) {
+    if (pos == std::string_view::npos) {
       // There are other tokens on this line
       return {SpacingOptions::kMustAppend,
               "EOL comment cannot break from "
@@ -803,7 +801,7 @@ static WithReason<SpacingOptions> BreakDecisionBetween(
         left.token->text().end(), right.token->text().begin());
 
     auto pos = preceding_whitespace.find_first_of('\n', 0);
-    if (pos != absl::string_view::npos) {
+    if (pos != std::string_view::npos) {
       // TODO(mglb): Preserve would be more suitable, but it doesn't work
       // correctly yet.
       // Add support for "Preserve" in Layout Optimizer.
@@ -907,7 +905,7 @@ static WithReason<SpacingOptions> BreakDecisionBetween(
 
   if (left.TokenEnum() == ',' &&
       right.TokenEnum() == verilog_tokentype::MacroArg) {
-    const absl::string_view text(right.Text());
+    const std::string_view text(right.Text());
     if (std::find(text.begin(), text.end(), '\n') != text.end()) {
       return {SpacingOptions::kMustWrap,
               "Multi-line unlexed macro arguments start on their own line."};
@@ -922,11 +920,11 @@ static WithReason<SpacingOptions> BreakDecisionBetween(
 // Extern linkage for sake of direct testing, though not exposed in public
 // headers.
 // TODO(fangism): could move this to a -internal.h header.
-void AnnotateFormatToken(const FormatStyle &style,
-                         const PreFormatToken &prev_token,
-                         PreFormatToken *curr_token,
-                         const SyntaxTreeContext &prev_context,
-                         const SyntaxTreeContext &curr_context) {
+extern void AnnotateFormatToken(const FormatStyle &style,
+                                const PreFormatToken &prev_token,
+                                PreFormatToken *curr_token,
+                                const SyntaxTreeContext &prev_context,
+                                const SyntaxTreeContext &curr_context) {
   const auto p = SpacesRequiredBetween(style, prev_token, *curr_token,
                                        prev_context, curr_context);
   curr_token->before.spaces_required = p.spaces_required;
@@ -957,7 +955,7 @@ void AnnotateFormattingInformation(
 }
 
 void AnnotateFormattingInformation(
-    const FormatStyle &style, const char *buffer_start,
+    const FormatStyle &style, std::string_view::const_iterator buffer_start,
     const verible::Symbol *syntax_tree_root,
     const verible::TokenInfo &eof_token,
     std::vector<verible::PreFormatToken> *format_tokens) {
@@ -965,7 +963,7 @@ void AnnotateFormattingInformation(
     return;
   }
 
-  if (buffer_start != nullptr) {
+  if (buffer_start != verible::string_view_null_iterator()) {
     // For unit testing, tokens' text snippets don't necessarily originate
     // from the same contiguous string buffer, so skip this step.
     ConnectPreFormatTokensPreservedSpaceStarts(buffer_start, format_tokens);

@@ -17,7 +17,6 @@
 #include <memory>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "gtest/gtest.h"
 #include "verible/common/analysis/syntax-tree-search-test-utils.h"
 #include "verible/common/analysis/syntax-tree-search.h"

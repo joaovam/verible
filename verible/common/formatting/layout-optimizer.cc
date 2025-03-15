@@ -28,6 +28,7 @@
 #include <ostream>
 #include <utility>
 
+#include "absl/base/config.h"  // NOLINT for ABSL_LTS_RELEASE_VERSION
 #include "absl/container/fixed_array.h"
 #include "absl/log/log.h"
 #include "verible/common/formatting/basic-format-style.h"
@@ -39,6 +40,11 @@
 #include "verible/common/util/logging.h"
 #include "verible/common/util/tree-operations.h"
 #include "verible/common/util/value-saver.h"
+
+#if ABSL_LTS_RELEASE_VERSION > 20240200
+// https://github.com/chipsalliance/verible/issues/2336
+#include "absl/log/vlog_is_on.h"
+#endif
 
 namespace verible {
 
@@ -192,7 +198,7 @@ LayoutFunction::const_iterator LayoutFunction::AtOrToTheLeftOf(
       begin(), end(), column, [](const LayoutFunctionSegment &s, int column) {
         return s.column <= column;
       });
-  CHECK_NE(it, begin());
+  CHECK(it != begin());
   return it - 1;
 }
 
@@ -396,7 +402,7 @@ LayoutFunction LayoutFunctionFactory::Stack(
         if ((segment_it + 1).IsEnd()) continue;
         const int column = (segment_it + 1)->column;
         CHECK_GE(column, current_column);
-        if (column < next_column) next_column = column;
+        next_column = std::min(column, next_column);
       }
       current_column = next_column;
     }
@@ -428,7 +434,7 @@ LayoutFunction LayoutFunctionFactory::Choice(
 
       const int column =
           (segment_it + 1).IsEnd() ? kInfinity : segment_it[1].column;
-      if (column < next_knot) next_knot = column;
+      next_knot = std::min(column, next_knot);
     }
 
     do {

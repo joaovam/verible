@@ -26,10 +26,10 @@
 #include <map>
 #include <sstream>  // IWYU pragma: keep  // for ostringstream
 #include <string>   // for string, allocator, etc
+#include <string_view>
 
 #include "absl/flags/flag.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/string_view.h"
 #include "verible/common/util/enum-flags.h"
 #include "verible/common/util/file-util.h"
 #include "verible/common/util/init-command-line.h"
@@ -52,15 +52,16 @@ static const verible::EnumNameMap<DiffMode> &DiffModeStringMap() {
   return kDiffModeStringMap;
 }
 
-std::ostream &operator<<(std::ostream &stream, DiffMode p) {
+static std::ostream &operator<<(std::ostream &stream, DiffMode p) {
   return DiffModeStringMap().Unparse(p, stream);
 }
 
-bool AbslParseFlag(absl::string_view text, DiffMode *mode, std::string *error) {
+static bool AbslParseFlag(std::string_view text, DiffMode *mode,
+                          std::string *error) {
   return DiffModeStringMap().Parse(text, mode, error, "--mode value");
 }
 
-std::string AbslUnparseFlag(const DiffMode &mode) {
+static std::string AbslUnparseFlag(const DiffMode &mode) {
   std::ostringstream stream;
   stream << mode;
   return stream.str();
@@ -75,7 +76,7 @@ ABSL_FLAG(DiffMode, mode, DiffMode::kFormat,
 )");
 
 using EquivalenceFunctionType = std::function<verilog::DiffStatus(
-    absl::string_view, absl::string_view, std::ostream *)>;
+    std::string_view, std::string_view, std::ostream *)>;
 
 static const std::map<DiffMode, EquivalenceFunctionType> diff_func_map({
     {DiffMode::kFormat, verilog::FormatEquivalent},

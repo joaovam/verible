@@ -18,15 +18,22 @@
 #include <cstddef>
 #include <iosfwd>
 #include <string>
+#include <string_view>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "verible/common/strings/position.h"
 #include "verible/common/text/concrete-syntax-leaf.h"
 #include "verible/common/text/token-info.h"
 #include "verible/common/util/container-iterator-range.h"
 
 namespace verible {
+
+// TODO: find something platform independent that is less ugly.
+// Or maybe revisit the place where we need this and see if they could
+// be actually represented by a const char * nullptr.
+inline std::string_view::const_iterator string_view_null_iterator() {
+  return std::string_view::const_iterator{};
+}
 
 // Enumeration for options for formatting spaces between tokens.
 // This controls what to explore (if not pre-determined).
@@ -76,7 +83,8 @@ struct InterTokenInfo {
   // tokens, for the sake of preserving space.
   // Together with the current token, they can form a string_view representing
   // pre-existing space from the original buffer.
-  const char *preserved_space_start = nullptr;
+  std::string_view::const_iterator preserved_space_start =
+      string_view_null_iterator();
 
   InterTokenInfo() = default;
   InterTokenInfo(const InterTokenInfo &) = default;
@@ -129,13 +137,13 @@ struct PreFormatToken {
   int Length() const { return token->text().length(); }
 
   // Returns the text of the TokenInfo token held by this PreFormatToken
-  absl::string_view Text() const { return token->text(); }
+  std::string_view Text() const { return token->text(); }
 
   // Returns the enum of the TokenInfo token held by this PreFormatToken
   int TokenEnum() const { return token->token_enum(); }
 
   // Reconstructs the original spacing that preceded this token.
-  absl::string_view OriginalLeadingSpaces() const;
+  std::string_view OriginalLeadingSpaces() const;
 
   // Returns OriginalLeadingSpaces().length() - before.spaces_required.
   // If there is no leading spaces text, return 0.
@@ -158,7 +166,7 @@ std::ostream &operator<<(std::ostream &stream, const PreFormatToken &token);
 // inter-token (space) text.
 // Note that this does not cover the space between the last token and EOF.
 void ConnectPreFormatTokensPreservedSpaceStarts(
-    const char *buffer_start,
+    std::string_view::const_iterator buffer_start,
     std::vector<verible::PreFormatToken> *format_tokens);
 
 // Marks formatting-disabled ranges of tokens so that their original spacing is
@@ -168,7 +176,7 @@ void ConnectPreFormatTokensPreservedSpaceStarts(
 // as the base reference for 'disabled_byte_ranges' offsets.
 void PreserveSpacesOnDisabledTokenRanges(
     std::vector<PreFormatToken> *ftokens,
-    const ByteOffsetSet &disabled_byte_ranges, absl::string_view base_text);
+    const ByteOffsetSet &disabled_byte_ranges, std::string_view base_text);
 
 using FormatTokenRange =
     container_iterator_range<std::vector<PreFormatToken>::const_iterator>;
@@ -199,7 +207,8 @@ struct InterTokenDecision {
   SpacingDecision action = SpacingDecision::kPreserve;
 
   // When preserving spaces before this token, start from this offset.
-  const char *preserved_space_start = nullptr;
+  std::string_view::const_iterator preserved_space_start =
+      string_view_null_iterator();
 
   InterTokenDecision() = default;
 
@@ -218,7 +227,7 @@ struct FormattedToken {
       : token(ftoken.token), before(ftoken.before) {}
 
   // Reconstructs the original spacing that preceded this token.
-  absl::string_view OriginalLeadingSpaces() const;
+  std::string_view OriginalLeadingSpaces() const;
 
   // Print out formatted result after formatting decision optimization.
   std::ostream &FormattedText(std::ostream &) const;

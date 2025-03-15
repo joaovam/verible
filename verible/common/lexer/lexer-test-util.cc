@@ -17,7 +17,6 @@
 #include <ostream>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "verible/common/text/token-info.h"
 #include "verible/common/util/logging.h"
 

@@ -16,7 +16,6 @@
 
 #include <iostream>
 
-#include "absl/strings/string_view.h"
 #include "gtest/gtest.h"
 #include "verible/common/util/vector-tree.h"
 

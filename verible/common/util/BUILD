@@ -1,6 +1,8 @@
 # 'util' contains generic containers, adapters, algorithms
 # Any verible package may directly depend on this.
 
+load(":module-version.bzl", "get_version_define_from_module")
+
 package(
     default_applicable_licenses = ["//:license"],
     default_visibility = [
@@ -49,7 +51,6 @@ cc_library(
         "//verible/common/strings:compare",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/strings",
-        "@abseil-cpp//absl/strings:string_view",
     ],
 )
 
@@ -74,7 +75,6 @@ cc_library(
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
-        "@abseil-cpp//absl/strings:string_view",
     ],
 )
 
@@ -102,6 +102,7 @@ cc_library(
     name = "init-command-line",
     srcs = ["init-command-line.cc"],
     hdrs = ["init-command-line.h"],
+    copts = get_version_define_from_module(),
     deps = [
         # these deps are needed by init_command_line.cc:
         ":build-version",
@@ -114,7 +115,6 @@ cc_library(
         "@abseil-cpp//absl/base:log_severity",
         "@abseil-cpp//absl/log:initialize",
         "@abseil-cpp//absl/strings",
-        "@abseil-cpp//absl/strings:string_view",
         "@abseil-cpp//absl/time",
     ],
 )
@@ -125,7 +125,6 @@ cc_library(
     deps = [
         ":forward",
         "@abseil-cpp//absl/strings",
-        "@abseil-cpp//absl/strings:string_view",
     ],
 )
 
@@ -148,7 +147,6 @@ cc_library(
         ":logging",
         "@abseil-cpp//absl/random",
         "@abseil-cpp//absl/strings",
-        "@abseil-cpp//absl/strings:string_view",
     ],
 )
 
@@ -235,7 +233,6 @@ cc_library(
         ":bijective-map",
         "//verible/common/strings:compare",
         "@abseil-cpp//absl/strings",
-        "@abseil-cpp//absl/strings:string_view",
     ],
 )
 
@@ -285,7 +282,6 @@ cc_library(
     deps = [
         ":tree-operations",
         ":vector-tree",
-        "@abseil-cpp//absl/strings:string_view",
         "@googletest//:gtest",  # for library testonly
     ],
 )
@@ -318,7 +314,6 @@ cc_library(
     name = "user-interaction",
     srcs = ["user-interaction.cc"],
     hdrs = ["user-interaction.h"],
-    deps = ["@abseil-cpp//absl/strings:string_view"],
 )
 
 cc_library(
@@ -332,7 +327,6 @@ cc_test(
     deps = [
         ":algorithm",
         ":iterator-range",
-        "@abseil-cpp//absl/strings:string_view",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
@@ -367,7 +361,6 @@ cc_test(
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/status:statusor",
         "@abseil-cpp//absl/strings",
-        "@abseil-cpp//absl/strings:string_view",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
@@ -389,7 +382,6 @@ cc_test(
     deps = [
         ":interval-map",
         ":range",
-        "@abseil-cpp//absl/strings:string_view",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
@@ -402,7 +394,6 @@ cc_test(
         ":interval",
         ":interval-set",
         ":logging",
-        "@abseil-cpp//absl/strings:string_view",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
@@ -413,7 +404,6 @@ cc_test(
     srcs = ["forward_test.cc"],
     deps = [
         ":forward",
-        "@abseil-cpp//absl/strings:string_view",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
@@ -425,7 +415,6 @@ cc_test(
     deps = [
         ":iterator-range",
         ":range",
-        "@abseil-cpp//absl/strings:string_view",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
@@ -496,7 +485,6 @@ cc_test(
         ":subcommand",
         "@abseil-cpp//absl/status",
         "@abseil-cpp//absl/strings",
-        "@abseil-cpp//absl/strings:string_view",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
@@ -538,7 +526,6 @@ cc_test(
     deps = [
         ":enum-flags",
         "@abseil-cpp//absl/strings",
-        "@abseil-cpp//absl/strings:string_view",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
@@ -551,7 +538,6 @@ cc_test(
         ":bijective-map",
         ":logging",
         "//verible/common/strings:compare",
-        "@abseil-cpp//absl/strings:string_view",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
@@ -566,7 +552,6 @@ cc_test(
         ":vector-tree",
         ":vector-tree-test-util",
         "@abseil-cpp//absl/strings",
-        "@abseil-cpp//absl/strings:string_view",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
@@ -608,7 +593,6 @@ cc_test(
         ":vector-tree",
         ":vector-tree-test-util",
         "@abseil-cpp//absl/strings",
-        "@abseil-cpp//absl/strings:string_view",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
@@ -637,7 +621,6 @@ cc_test(
     deps = [
         ":map-tree",
         ":spacer",
-        "@abseil-cpp//absl/strings:string_view",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
@@ -682,7 +665,6 @@ cc_library(
     hdrs = ["simple-zip.h"],
     deps = [
         "//third_party/portable_endian",
-        "@abseil-cpp//absl/strings:string_view",
         "@zlib",
     ],
 )
@@ -693,7 +675,6 @@ cc_test(
     deps = [
         ":file-util",
         ":simple-zip",
-        "@abseil-cpp//absl/strings:string_view",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
@@ -703,10 +684,7 @@ cc_library(
     name = "sha256",
     srcs = ["sha256.cc"],
     hdrs = ["sha256.h"],
-    deps = [
-        "@abseil-cpp//absl/strings",
-        "@abseil-cpp//absl/strings:string_view",
-    ],
+    deps = ["@abseil-cpp//absl/strings"],
 )
 
 cc_test(
@@ -715,7 +693,6 @@ cc_test(
     deps = [
         ":sha256",
         "@abseil-cpp//absl/strings",
-        "@abseil-cpp//absl/strings:string_view",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],

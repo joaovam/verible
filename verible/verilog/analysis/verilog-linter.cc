@@ -22,16 +22,17 @@
 #include <ostream>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
+#include "absl/base/config.h"  // NOLINT for ABSL_LTS_RELEASE_VERSION
 #include "absl/flags/flag.h"
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
-#include "absl/strings/string_view.h"
 #include "verible/common/analysis/citation.h"
 #include "verible/common/analysis/line-linter.h"
 #include "verible/common/analysis/lint-rule-status.h"
@@ -54,6 +55,11 @@
 #include "verible/verilog/analysis/verilog-linter-constants.h"
 #include "verible/verilog/parser/verilog-token-classifications.h"
 #include "verible/verilog/parser/verilog-token-enum.h"
+
+#if ABSL_LTS_RELEASE_VERSION > 20240200
+// https://github.com/chipsalliance/verible/issues/2336
+#include "absl/log/vlog_is_on.h"
+#endif
 
 // TODO(hzeller): make --rules repeatable and cumulative
 
@@ -99,7 +105,7 @@ std::set<LintViolationWithStatus> GetSortedViolations(
 //  0: success
 //  1: linting error (if parse_fatal == true)
 //  2..: other fatal issues such as file not found.
-int LintOneFile(std::ostream *stream, absl::string_view filename,
+int LintOneFile(std::ostream *stream, std::string_view filename,
                 const LinterConfiguration &config,
                 verible::ViolationHandler *violation_handler, bool check_syntax,
                 bool parse_fatal, bool lint_fatal, bool show_context) {
@@ -159,7 +165,7 @@ int LintOneFile(std::ostream *stream, absl::string_view filename,
   } else {
     VLOG(1) << "Lint Violations (" << total_violations << "): " << std::endl;
 
-    absl::string_view text_base = text_structure.Contents();
+    std::string_view text_base = text_structure.Contents();
 
     const std::set<LintViolationWithStatus> violations =
         GetSortedViolations(linter_statuses);
@@ -184,7 +190,7 @@ VerilogLinter::VerilogLinter()
           kLinterWaiveStopCommand) {}
 
 absl::Status VerilogLinter::Configure(const LinterConfiguration &configuration,
-                                      absl::string_view lintee_filename) {
+                                      std::string_view lintee_filename) {
   if (VLOG_IS_ON(2)) {
     for (const auto &name : configuration.ActiveRuleIds()) {
       LOG(INFO) << "active rule: '" << name << '\'';
@@ -228,7 +234,7 @@ absl::Status VerilogLinter::Configure(const LinterConfiguration &configuration,
 }
 
 void VerilogLinter::Lint(const TextStructureView &text_structure,
-                         absl::string_view filename) {
+                         std::string_view filename) {
   // Collect all lint waivers in an initial pass.
   lint_waiver_.ProcessTokenRangesByLine(text_structure);
 
@@ -251,7 +257,7 @@ void VerilogLinter::Lint(const TextStructureView &text_structure,
 static void AppendLintRuleStatuses(
     const std::vector<LintRuleStatus> &new_statuses,
     const verible::LintWaiver &waivers, const LineColumnMap &line_map,
-    absl::string_view text_base,
+    std::string_view text_base,
     std::vector<LintRuleStatus> *cumulative_statuses) {
   for (const auto &status : new_statuses) {
     cumulative_statuses->push_back(status);
@@ -276,7 +282,7 @@ static void AppendLintRuleStatuses(
 }
 
 std::vector<LintRuleStatus> VerilogLinter::ReportStatus(
-    const LineColumnMap &line_map, absl::string_view text_base) {
+    const LineColumnMap &line_map, std::string_view text_base) {
   std::vector<LintRuleStatus> statuses;
   const verible::LintWaiver &waivers = lint_waiver_.GetLintWaiver();
   AppendLintRuleStatuses(line_linter_.ReportStatus(), waivers, line_map,
@@ -291,7 +297,7 @@ std::vector<LintRuleStatus> VerilogLinter::ReportStatus(
 }
 
 absl::StatusOr<LinterConfiguration> LinterConfigurationFromFlags(
-    absl::string_view linting_start_file) {
+    std::string_view linting_start_file) {
   LinterConfiguration config;
 
   const verilog::LinterOptions options = {
@@ -309,7 +315,7 @@ absl::StatusOr<LinterConfiguration> LinterConfigurationFromFlags(
 }
 
 absl::StatusOr<std::vector<LintRuleStatus>> VerilogLintTextStructure(
-    absl::string_view filename, const LinterConfiguration &config,
+    std::string_view filename, const LinterConfiguration &config,
     const TextStructureView &text_structure) {
   // Create the linter, add rules, and run it.
   VerilogLinter linter;
@@ -319,14 +325,14 @@ absl::StatusOr<std::vector<LintRuleStatus>> VerilogLintTextStructure(
 
   linter.Lint(text_structure, filename);
 
-  absl::string_view text_base = text_structure.Contents();
+  std::string_view text_base = text_structure.Contents();
   // Each enabled lint rule yields a collection of violations.
   return linter.ReportStatus(text_structure.GetLineColumnMap(), text_base);
 }
 
 absl::Status PrintRuleInfo(std::ostream *os,
                            const analysis::LintRuleDescriptionsMap &rule_map,
-                           absl::string_view rule_name) {
+                           std::string_view rule_name) {
   constexpr int kRuleWidth = 35;
   constexpr int kParamIndent = kRuleWidth + 4;
   constexpr char kFill = ' ';
@@ -360,7 +366,7 @@ absl::Status PrintRuleInfo(std::ostream *os,
 }
 
 void GetLintRuleDescriptionsHelpFlag(std::ostream *os,
-                                     absl::string_view flag_value) {
+                                     std::string_view flag_value) {
   // Set up the map.
   auto rule_map = analysis::GetAllRuleDescriptions();
   for (const auto &rule_id : analysis::kDefaultRuleSet) {

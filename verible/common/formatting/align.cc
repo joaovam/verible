@@ -25,12 +25,12 @@
 #include <numeric>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
-#include "absl/strings/string_view.h"
 #include "verible/common/formatting/format-token.h"
 #include "verible/common/formatting/token-partition-tree.h"
 #include "verible/common/formatting/unwrapped-line.h"
@@ -68,7 +68,7 @@ std::ostream &operator<<(std::ostream &stream, AlignmentPolicy policy) {
   return AlignmentPolicyNameMap().Unparse(policy, stream);
 }
 
-bool AbslParseFlag(absl::string_view text, AlignmentPolicy *policy,
+bool AbslParseFlag(std::string_view text, AlignmentPolicy *policy,
                    std::string *error) {
   return AlignmentPolicyNameMap().Parse(text, policy, error, "AlignmentPolicy");
 }
@@ -132,7 +132,8 @@ struct AlignmentCell {
 using AlignmentRow = VectorTree<AlignmentCell>;
 using AlignmentMatrix = std::vector<AlignmentRow>;
 
-std::ostream &operator<<(std::ostream &stream, const AlignmentCell &cell) {
+static std::ostream &operator<<(std::ostream &stream,
+                                const AlignmentCell &cell) {
   if (!cell.tokens.empty()) {
     // See UnwrappedLine::AsCode for similar printing.
     stream << absl::StrJoin(cell.tokens, " ",
@@ -195,7 +196,7 @@ static void ColumnsTreeFormatter(
     const CellLabelGetterFunc<ValueType> &get_cell_label) {
   if (root.Children().empty()) return;
 
-  static constexpr absl::string_view kCellSeparator = "|";
+  static constexpr std::string_view kCellSeparator = "|";
 
   struct Cell {
     std::string text;
@@ -265,8 +266,7 @@ static void ColumnsTreeFormatter(
       }
     }
 
-    const std::vector<absl::string_view> parts =
-        absl::StrSplit(cell.text, '\t');
+    const std::vector<std::string_view> parts = absl::StrSplit(cell.text, '\t');
 
     const auto width = cell.width - kCellSeparator.size();
 
@@ -481,8 +481,8 @@ static std::pair<std::string, char> GetColumnDataCellLabel(
   return {label.str(), node.Value().properties.flush_left ? '<' : '>'};
 }
 
-std::ostream &operator<<(std::ostream &stream,
-                         const VectorTree<AggregateColumnData> &tree) {
+static std::ostream &operator<<(std::ostream &stream,
+                                const VectorTree<AggregateColumnData> &tree) {
   ColumnsTreeFormatter<AggregateColumnData>(
       stream, tree, GetColumnDataCellLabel<AggregateColumnData>);
   return stream;
@@ -494,8 +494,8 @@ std::ostream &operator<<(std::ostream &stream, const ColumnPositionTree &tree) {
   return stream;
 }
 
-std::ostream &operator<<(std::ostream &stream,
-                         const VectorTree<AlignmentCell> &tree) {
+static std::ostream &operator<<(std::ostream &stream,
+                                const VectorTree<AlignmentCell> &tree) {
   ColumnsTreeFormatter<AlignmentCell>(
       stream, tree,
       [](const VectorTree<AlignmentCell> &node)
@@ -516,8 +516,8 @@ std::ostream &operator<<(std::ostream &stream,
   return stream;
 }
 
-std::ostream &operator<<(std::ostream &stream,
-                         const VectorTree<AlignedColumnConfiguration> &tree) {
+static std::ostream &operator<<(
+    std::ostream &stream, const VectorTree<AlignedColumnConfiguration> &tree) {
   ColumnsTreeFormatter<AlignedColumnConfiguration>(
       stream, tree, [](const VectorTree<AlignedColumnConfiguration> &node) {
         const auto &cell = node.Value();
@@ -1084,7 +1084,7 @@ static int MaxOfPositives2D(const std::vector<std::vector<int>> &values) {
   for (const auto &row : values) {
     for (const int delta : row) {
       // Only accumulate positive values.
-      if (delta > result) result = delta;
+      result = std::max(delta, result);
     }
   }
   return result;
@@ -1189,7 +1189,7 @@ void FormatUsingOriginalSpacing(TokenPartitionRange partition_range) {
 
         int spacing = whitespace.size();
         std::size_t last_newline_pos = whitespace.find_last_of('\n');
-        if (last_newline_pos != absl::string_view::npos) {
+        if (last_newline_pos != std::string_view::npos) {
           // Update end of current line.
           partition.Children().back().Value().SpanUpToToken(it);
           // Start a new line.
@@ -1273,7 +1273,7 @@ void AlignablePartitionGroup::Align(int column_limit) const {
 }
 
 void TabularAlignTokens(
-    int column_limit, absl::string_view full_text,
+    int column_limit, std::string_view full_text,
     const ByteOffsetSet &disabled_byte_ranges,
     const ExtractAlignmentGroupsFunction &extract_alignment_groups,
     TokenPartitionTree *partition_ptr) {

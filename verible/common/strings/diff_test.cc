@@ -18,10 +18,9 @@
 #include <initializer_list>
 #include <ostream>
 #include <sstream>
-#include <string>
+#include <string_view>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "external_libs/editscript.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -29,7 +28,7 @@
 
 namespace diff {
 // Print functions copied from external_libs/editscript_test.cc
-std::ostream &operator<<(std::ostream &out, Operation operation) {
+static std::ostream &operator<<(std::ostream &out, Operation operation) {
   switch (operation) {
     case Operation::EQUALS:
       return (out << "EQUALS");
@@ -41,19 +40,8 @@ std::ostream &operator<<(std::ostream &out, Operation operation) {
   return out;
 }
 
-std::ostream &operator<<(std::ostream &out, const diff::Edit &edit) {
+static std::ostream &operator<<(std::ostream &out, const diff::Edit &edit) {
   out << "{" << edit.operation << ",[" << edit.start << "," << edit.end << ")}";
-  return out;
-}
-
-std::ostream &operator<<(std::ostream &out, const Edits &edits) {
-  out << "Edits{";
-  std::string outer_delim;
-  for (auto &edit : edits) {
-    out << outer_delim << edit;
-    outer_delim = ",";
-  }
-  out << "};";
   return out;
 }
 
@@ -68,9 +56,9 @@ using diff::Operation;
 using ::testing::ElementsAreArray;
 
 struct DiffTestCase {
-  absl::string_view before;
-  absl::string_view after;
-  absl::string_view expected;
+  std::string_view before;
+  std::string_view after;
+  std::string_view expected;
 };
 
 TEST(LineDiffsTest, Various) {
@@ -524,12 +512,12 @@ TEST(DiffEditsToPatchHunksTest, Various) {
 }
 
 struct LineDiffsToUnifiedDiffTestCase {
-  absl::string_view before_text;
-  absl::string_view after_text;
-  absl::string_view file_a;
-  absl::string_view file_b;
+  std::string_view before_text;
+  std::string_view after_text;
+  std::string_view file_a;
+  std::string_view file_b;
   int common_context;
-  absl::string_view expected_diff_text;
+  std::string_view expected_diff_text;
 };
 
 TEST(LineDiffsToUnifiedDiffTest, Various) {

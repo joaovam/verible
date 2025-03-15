@@ -16,9 +16,9 @@
 
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "gtest/gtest.h"
 #include "verible/common/formatting/unwrapped-line-test-utils.h"
 #include "verible/common/strings/position.h"
@@ -130,7 +130,7 @@ TEST(PreFormatTokenTest, VectorResizeable) {
 }
 
 TEST(PreFormatTokenTest, OriginalLeadingSpaces) {
-  const absl::string_view text("abcdefgh");
+  const std::string_view text("abcdefgh");
   const TokenInfo tok1(1, text.substr(1, 3)), tok2(2, text.substr(5, 2));
   {
     PreFormatToken p1(&tok1), p2(&tok2);
@@ -149,7 +149,7 @@ TEST(PreFormatTokenTest, OriginalLeadingSpaces) {
 }
 
 TEST(PreFormatTokenTest, ExcessSpacesNoNewline) {
-  const absl::string_view text("abcdefgh");
+  const std::string_view text("abcdefgh");
   const TokenInfo tok(1, text.substr(1, 3));
   PreFormatToken p(&tok);  // before.preserved_space_start == nullptr
   EXPECT_EQ(p.ExcessSpaces(), 0);
@@ -163,7 +163,7 @@ TEST(PreFormatTokenTest, ExcessSpacesNoNewline) {
 }
 
 TEST(PreFormatTokenTest, ExcessSpacesNewline) {
-  const absl::string_view text("\nbcdefgh");
+  const std::string_view text("\nbcdefgh");
   const TokenInfo tok(1, text.substr(1, 3));
   PreFormatToken p(&tok);  // before.preserved_space_start == nullptr
   EXPECT_EQ(p.ExcessSpaces(), 0);
@@ -177,7 +177,7 @@ TEST(PreFormatTokenTest, ExcessSpacesNewline) {
 }
 
 TEST(PreFormatTokenTest, LeadingSpacesLength) {
-  const absl::string_view text("abcdefgh");
+  const std::string_view text("abcdefgh");
   const TokenInfo tok1(1, text.substr(1, 3)), tok2(2, text.substr(5, 2));
   {
     PreFormatToken p1(&tok1), p2(&tok2);
@@ -218,14 +218,17 @@ class ConnectPreFormatTokensPreservedSpaceStartsTest
       public UnwrappedLineMemoryHandler {};
 
 TEST_F(ConnectPreFormatTokensPreservedSpaceStartsTest, Empty) {
-  const char *text = "";
+  // We do want to initialize the text, otherwise string_view wraps a nulllptr
+  // that is checked against downstream.
+  // NOLINTNEXTLINE(readability-redundant-string-init)
+  constexpr std::string_view text("");
   CreateTokenInfosExternalStringBuffer({});
-  ConnectPreFormatTokensPreservedSpaceStarts(text, &pre_format_tokens_);
+  ConnectPreFormatTokensPreservedSpaceStarts(text.begin(), &pre_format_tokens_);
   EXPECT_TRUE(pre_format_tokens_.empty());
 }
 
 TEST_F(ConnectPreFormatTokensPreservedSpaceStartsTest, OneToken) {
-  constexpr absl::string_view text("xyz");
+  constexpr std::string_view text("xyz");
   CreateTokenInfosExternalStringBuffer({
       {1, text.substr(0, 3)},
   });
@@ -235,7 +238,7 @@ TEST_F(ConnectPreFormatTokensPreservedSpaceStartsTest, OneToken) {
 }
 
 TEST_F(ConnectPreFormatTokensPreservedSpaceStartsTest, OneTokenLeadingSpace) {
-  constexpr absl::string_view text("  xyz");
+  constexpr std::string_view text("  xyz");
   CreateTokenInfosExternalStringBuffer({
       {1, text.substr(2, 3)},  // "xyz"
   });
@@ -245,7 +248,7 @@ TEST_F(ConnectPreFormatTokensPreservedSpaceStartsTest, OneTokenLeadingSpace) {
 }
 
 TEST_F(ConnectPreFormatTokensPreservedSpaceStartsTest, MultipleTokens) {
-  constexpr absl::string_view text("  xyz\t\t\nabc");
+  constexpr std::string_view text("  xyz\t\t\nabc");
   CreateTokenInfosExternalStringBuffer({
       {1, text.substr(2, 3)},  // "xyz"
       {2, text.substr(8, 3)},  // "abc"
@@ -262,7 +265,7 @@ class PreserveSpacesOnDisabledTokenRangesTest
       public UnwrappedLineMemoryHandler {};
 
 TEST_F(PreserveSpacesOnDisabledTokenRangesTest, DisableNone) {
-  constexpr absl::string_view text("a b c d e");
+  constexpr std::string_view text("a b c d e");
   CreateTokenInfosExternalStringBuffer({
       {1, text.substr(0, 1)},
       {2, text.substr(2, 1)},
@@ -279,7 +282,7 @@ TEST_F(PreserveSpacesOnDisabledTokenRangesTest, DisableNone) {
 }
 
 TEST_F(PreserveSpacesOnDisabledTokenRangesTest, DisableSpaceBeforeText) {
-  constexpr absl::string_view text("a b c d e");
+  constexpr std::string_view text("a b c d e");
   CreateTokenInfosExternalStringBuffer({
       {1, text.substr(0, 1)},
       {2, text.substr(2, 1)},
@@ -300,7 +303,7 @@ TEST_F(PreserveSpacesOnDisabledTokenRangesTest, DisableSpaceBeforeText) {
 }
 
 TEST_F(PreserveSpacesOnDisabledTokenRangesTest, DisableSpaceAfterText) {
-  constexpr absl::string_view text("a b c d e");
+  constexpr std::string_view text("a b c d e");
   CreateTokenInfosExternalStringBuffer({
       {1, text.substr(0, 1)},
       {2, text.substr(2, 1)},
@@ -321,7 +324,7 @@ TEST_F(PreserveSpacesOnDisabledTokenRangesTest, DisableSpaceAfterText) {
 }
 
 TEST_F(PreserveSpacesOnDisabledTokenRangesTest, DisableSpanningTwoTokens) {
-  constexpr absl::string_view text("a b c d e");
+  constexpr std::string_view text("a b c d e");
   CreateTokenInfosExternalStringBuffer({
       {1, text.substr(0, 1)},
       {2, text.substr(2, 1)},
@@ -342,7 +345,7 @@ TEST_F(PreserveSpacesOnDisabledTokenRangesTest, DisableSpanningTwoTokens) {
 }
 
 TEST_F(PreserveSpacesOnDisabledTokenRangesTest, DisableSpanningMustWrap) {
-  constexpr absl::string_view text("a b c d e");
+  constexpr std::string_view text("a b c d e");
   CreateTokenInfosExternalStringBuffer({
       {1, text.substr(0, 1)},
       {2, text.substr(2, 1)},
@@ -375,7 +378,7 @@ TEST_F(PreserveSpacesOnDisabledTokenRangesTest, DisableSpanningMustWrap) {
 
 TEST_F(PreserveSpacesOnDisabledTokenRangesTest,
        DisableSpanningMustWrapWithNewline) {
-  constexpr absl::string_view text("a\nb\nc d e");
+  constexpr std::string_view text("a\nb\nc d e");
   CreateTokenInfosExternalStringBuffer({
       {1, text.substr(0, 1)},
       {2, text.substr(2, 1)},
@@ -389,7 +392,7 @@ TEST_F(PreserveSpacesOnDisabledTokenRangesTest,
   PreserveSpacesOnDisabledTokenRanges(&pre_format_tokens_, disabled_bytes,
                                       text);
   const auto &ftokens = pre_format_tokens_;
-  auto indices = [&text](const absl::string_view &range) {
+  auto indices = [&text](const std::string_view &range) {
     return SubRangeIndices(range, text);
   };
   EXPECT_EQ(ftokens[0].before.break_decision, SpacingOptions::kUndecided);
@@ -411,7 +414,7 @@ TEST_F(PreserveSpacesOnDisabledTokenRangesTest,
 
 TEST_F(PreserveSpacesOnDisabledTokenRangesTest,
        DisableSpanningMustWrapWithNewlineKeepIndentation) {
-  constexpr absl::string_view text("a\n  b\n  c d e");
+  constexpr std::string_view text("a\n  b\n  c d e");
   CreateTokenInfosExternalStringBuffer({
       {1, text.substr(0, 1)},
       {2, text.substr(4, 1)},
@@ -425,7 +428,7 @@ TEST_F(PreserveSpacesOnDisabledTokenRangesTest,
   PreserveSpacesOnDisabledTokenRanges(&pre_format_tokens_, disabled_bytes,
                                       text);
   const auto &ftokens = pre_format_tokens_;
-  auto indices = [&text](const absl::string_view &range) {
+  auto indices = [&text](const std::string_view &range) {
     return SubRangeIndices(range, text);
   };
   EXPECT_EQ(ftokens[0].before.break_decision, SpacingOptions::kUndecided);
@@ -446,7 +449,7 @@ TEST_F(PreserveSpacesOnDisabledTokenRangesTest,
 }
 
 TEST_F(PreserveSpacesOnDisabledTokenRangesTest, MultipleOffsetRanges) {
-  constexpr absl::string_view text("a\nb\nc d e ff gg");
+  constexpr std::string_view text("a\nb\nc d e ff gg");
   CreateTokenInfosExternalStringBuffer({
       {1, text.substr(0, 1)},
       {2, text.substr(2, 1)},
@@ -462,7 +465,7 @@ TEST_F(PreserveSpacesOnDisabledTokenRangesTest, MultipleOffsetRanges) {
   PreserveSpacesOnDisabledTokenRanges(&pre_format_tokens_, disabled_bytes,
                                       text);
   const auto &ftokens = pre_format_tokens_;
-  auto indices = [&text](const absl::string_view &range) {
+  auto indices = [&text](const std::string_view &range) {
     return SubRangeIndices(range, text);
   };
   EXPECT_EQ(ftokens[0].before.break_decision, SpacingOptions::kUndecided);
@@ -523,7 +526,7 @@ TEST(FormattedTokenTest, FormattedText) {
 }
 
 TEST(FormattedTokenTest, OriginalLeadingSpaces) {
-  const absl::string_view text("abcdefgh");
+  const std::string_view text("abcdefgh");
   const TokenInfo tok1(1, text.substr(1, 3)), tok2(2, text.substr(5, 2));
   const PreFormatToken p1(&tok1), p2(&tok2);
   {
@@ -543,7 +546,7 @@ TEST(FormattedTokenTest, OriginalLeadingSpaces) {
 }
 
 TEST(FormattedTokenTest, PreservedSpaces) {
-  const absl::string_view text("abcdefgh");
+  const std::string_view text("abcdefgh");
   const TokenInfo tok1(1, text.substr(1, 3)), tok2(2, text.substr(5, 2));
   const PreFormatToken p1(&tok1), p2(&tok2);
   {
@@ -653,7 +656,7 @@ TEST(PreFormatTokenTest, StringRep) {
   TokenInfo token_info(1, "Hello");
   PreFormatToken format_token(&token_info);
   std::string str(format_token.ToString());
-  absl::string_view strv(str);
+  std::string_view strv(str);
   EXPECT_NE(strv.find("TokenInfo:"), strv.npos);
   EXPECT_NE(strv.find("before:"), strv.npos);
   EXPECT_NE(strv.find("break_decision:"), strv.npos);

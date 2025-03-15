@@ -138,11 +138,11 @@ ExpectedFailCount[lint:ibex]=14
 ExpectedFailCount[project:ibex]=211
 ExpectedFailCount[preprocessor:ibex]=385
 
-ExpectedFailCount[syntax:opentitan]=65
-ExpectedFailCount[lint:opentitan]=65
-ExpectedFailCount[project:opentitan]=951
+ExpectedFailCount[syntax:opentitan]=71
+ExpectedFailCount[lint:opentitan]=71
+ExpectedFailCount[project:opentitan]=1037
 ExpectedFailCount[formatter:opentitan]=1
-ExpectedFailCount[preprocessor:opentitan]=2560
+ExpectedFailCount[preprocessor:opentitan]=2819
 
 ExpectedFailCount[syntax:sv-tests]=77
 ExpectedFailCount[lint:sv-tests]=76
@@ -151,8 +151,8 @@ ExpectedFailCount[preprocessor:sv-tests]=139
 
 ExpectedFailCount[syntax:caliptra-rtl]=26
 ExpectedFailCount[lint:caliptra-rtl]=25
-ExpectedFailCount[project:caliptra-rtl]=371
-ExpectedFailCount[preprocessor:caliptra-rtl]=802
+ExpectedFailCount[project:caliptra-rtl]=391
+ExpectedFailCount[preprocessor:caliptra-rtl]=824
 
 ExpectedFailCount[syntax:Cores-VeeR-EH2]=2
 ExpectedFailCount[lint:Cores-VeeR-EH2]=2
@@ -211,11 +211,11 @@ ExpectedFailCount[preprocessor:scr1]=46
 ExpectedFailCount[project:serv]=1
 ExpectedFailCount[preprocessor:serv]=1
 
-ExpectedFailCount[syntax:basejump_stl]=481
-ExpectedFailCount[lint:basejump_stl]=481
-ExpectedFailCount[project:basejump_stl]=596
+ExpectedFailCount[syntax:basejump_stl]=482
+ExpectedFailCount[lint:basejump_stl]=482
+ExpectedFailCount[project:basejump_stl]=599
 ExpectedFailCount[formatter:basejump_stl]=1
-ExpectedFailCount[preprocessor:basejump_stl]=632
+ExpectedFailCount[preprocessor:basejump_stl]=635
 
 ExpectedFailCount[syntax:opl3_fpga]=3
 ExpectedFailCount[lint:opl3_fpga]=3

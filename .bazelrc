@@ -7,11 +7,7 @@ build --define="absl=1"
 build --enable_platform_specific_config
 
 # Gather build version information
-build:linux --workspace_status_command="bazel/build-version.py"
-build:freebsd --workspace_status_command="bazel/build-version.py"
-build:openbsd --workspace_status_command="bazel/build-version.py"
-build:macos --workspace_status_command="bazel/build-version.py"
-build:windows --workspace_status_command="python bazel/build-version.py"
+build --workspace_status_command="bash bazel/build-version.sh"
 
 # Systems with gcc or clang
 common:linux   --cxxopt=-xc++ --host_cxxopt=-xc++ --cxxopt=-std=c++17 --host_cxxopt=-std=c++17 --client_env=BAZEL_CXXOPTS=-std=c++17
@@ -34,6 +30,8 @@ build --cxxopt="-Wno-unknown-warning-option" --host_cxxopt="-Wno-unknown-warning
 build --cxxopt="-Wno-dangling-reference" --host_cxxopt="-Wno-dangling-reference"
 # Newer bisons create an unused label.
 build --cxxopt="-Wno-unused-label" --host_cxxopt="-Wno-unused-label"
+# c++20 warning on protobuf 28.1
+build --cxxopt="-Wno-missing-requires" --host_cxxopt="-Wno-missing-requires"
 
 # For 3rd party code: Disable warnings entirely.
 # They are not actionable and just create noise.

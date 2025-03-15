@@ -18,9 +18,9 @@
 #include <initializer_list>
 #include <iterator>
 #include <ostream>
+#include <string_view>
 #include <vector>
 
-#include "absl/strings/string_view.h"
 #include "gtest/gtest.h"
 #include "verible/common/formatting/format-token.h"
 #include "verible/common/formatting/unwrapped-line-test-utils.h"
@@ -1828,7 +1828,8 @@ TEST(TokenAnnotatorTest, AnnotateFormattingInfoTest) {
     // context-insensitive annotation rules.
     // Since we're using the joined string buffer inside handler,
     // we need to pass an EOF token that points to the end of that buffer.
-    AnnotateFormattingInformation(test_case.style, nullptr, nullptr,
+    AnnotateFormattingInformation(test_case.style,
+                                  verible::string_view_null_iterator(), nullptr,
                                   handler.EOFToken(), &ftokens_range);
     EXPECT_TRUE(CorrectExpectedFormatTokens(test_case.expected_calculations,
                                             ftokens_range))
@@ -4721,14 +4722,14 @@ struct OriginalSpacingSensitiveTestCase {
 
   // TODO(fangism): group this into a TokenInfo.
   int left_token_enum;
-  absl::string_view left_token_string;
+  std::string_view left_token_string;
 
   // This spacing may influence token-annotation behavior.
-  absl::string_view whitespace_between;
+  std::string_view whitespace_between;
 
   // TODO(fangism): group this into a TokenInfo.
   int right_token_enum;
-  absl::string_view right_token_string;
+  std::string_view right_token_string;
 
   InitializedSyntaxTreeContext left_context;
   InitializedSyntaxTreeContext right_context;

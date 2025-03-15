@@ -16,10 +16,10 @@
 
 #include <set>
 #include <string>
+#include <string_view>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/string_view.h"
 #include "re2/re2.h"
 #include "verible/common/analysis/lint-rule-status.h"
 #include "verible/common/analysis/matcher/bound-symbol-manager.h"
@@ -51,13 +51,13 @@ const LintRuleDescriptor &ConstraintNameStyleRule::GetDescriptor() {
       .desc =
           "Check that constraint names follow the required name style "
           "specified by a regular expression.",
-      .param = {{"pattern", kSuffix.data()}},
+      .param = {{"pattern", std::string(kSuffix)}},
   };
   return d;
 }
 
 absl::Status ConstraintNameStyleRule::Configure(
-    absl::string_view configuration) {
+    std::string_view configuration) {
   return verible::ParseNameValues(
       configuration, {{"pattern", verible::config::SetRegex(&regex)}});
 }
@@ -83,7 +83,7 @@ void ConstraintNameStyleRule::HandleSymbol(const verible::Symbol &symbol,
         GetSymbolIdentifierFromConstraintDeclaration(symbol);
     if (!identifier_token) return;
 
-    const absl::string_view constraint_name = identifier_token->text();
+    const std::string_view constraint_name = identifier_token->text();
 
     if (!RE2::FullMatch(constraint_name, *regex)) {
       violations_.insert(
